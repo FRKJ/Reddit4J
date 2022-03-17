@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Method;
+import masecla.reddit4j.http.Method;
+import masecla.reddit4j.http.clients.RedditRequest;
 
 import masecla.reddit4j.client.Reddit4J;
 import masecla.reddit4j.objects.preferences.RedditPreferences;
@@ -27,7 +27,7 @@ public class RedditPreferencesUpdateRequest {
 	}
 
 	public void execute() throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/api/v1/me/prefs").method(Method.PATCH).ignoreHttpErrors(true)
+		RedditRequest conn = client.useEndpoint("/api/v1/me/prefs").method(Method.PATCH).ignoreHttpErrors(true)
 				.data("raw_json", "1");
 		String jsonSent = new RedditPreferences().getGson().toJson(modifiedValues);
 		conn.data("json", jsonSent);

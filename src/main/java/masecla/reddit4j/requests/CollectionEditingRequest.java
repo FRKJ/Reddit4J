@@ -2,8 +2,8 @@ package masecla.reddit4j.requests;
 
 import java.io.IOException;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Method;
+import masecla.reddit4j.http.Method;
+import masecla.reddit4j.http.clients.RedditRequest;
 
 import masecla.reddit4j.client.Reddit4J;
 import masecla.reddit4j.objects.subreddit.SubredditCollection;
@@ -67,7 +67,7 @@ public class CollectionEditingRequest {
 	private void updateTitle() throws IOException, InterruptedException {
 		if (title == null)
 			return;
-		Connection conn = client.useEndpoint("/api/v1/collections/update_collection_title").method(Method.POST);
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/update_collection_title").method(Method.POST);
 		conn.data("collection_id", this.collection.getCollectionId().toString());
 		conn.data("title", title);
 		this.client.getHttpClient().execute(conn);
@@ -76,7 +76,7 @@ public class CollectionEditingRequest {
 	private void updateDisplayLayout() throws IOException, InterruptedException {
 		if (displayLayout == null)
 			return;
-		Connection conn = client.useEndpoint("/api/v1/collections/update_collection_display_layout")
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/update_collection_display_layout")
 				.method(Method.POST);
 		conn.data("collection_id", this.collection.getCollectionId().toString());
 		conn.data("display_layout", this.displayLayout.toString());
@@ -86,7 +86,7 @@ public class CollectionEditingRequest {
 	private void updateDescription() throws IOException, InterruptedException {
 		if (description == null)
 			return;
-		Connection conn = client.useEndpoint("/api/v1/collections/update_collection_description").method(Method.POST);
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/update_collection_description").method(Method.POST);
 		conn.data("collection_id", this.collection.getCollectionId().toString());
 		conn.data("description", description);
 		this.client.getHttpClient().execute(conn);

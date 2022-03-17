@@ -5,9 +5,6 @@ import java.time.Instant;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Response;
-
 import masecla.reddit4j.http.GenericHttpClient;
 
 public class RateLimitedClient extends GenericHttpClient {
@@ -18,21 +15,24 @@ public class RateLimitedClient extends GenericHttpClient {
 	 */
 	private static int RATE_LIMIT_MINUTE = 60;
 
-	public RateLimitedClient() {
+	private RedditHttpClient httpClient;
+
+	public RateLimitedClient(RedditHttpClient httpClient) {
 		super();
+		this.httpClient = httpClient;
 		this.requestCount = new AtomicInteger(0);
 		this.batchStart = new AtomicLong(Instant.now().getEpochSecond());
 	}
 
 	@Override
-	public Response execute(Connection connection) throws IOException, InterruptedException {
+	public RedditResponse execute(RedditRequest request) throws IOException, InterruptedException {
 		int secondsToWait = getSecondsUntilNextRequest();
 		if (secondsToWait == 0) {
 			this.requestCount.incrementAndGet();
-			return connection.execute();
+			return httpClient.execute(request);
 		}
 		Thread.sleep(secondsToWait * 1000);
-		return execute(connection);
+		return execute(request);
 	}
 
 	private AtomicInteger requestCount;

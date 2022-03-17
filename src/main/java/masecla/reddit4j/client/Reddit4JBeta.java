@@ -16,7 +16,7 @@ public class Reddit4JBeta {
 	}
 
 	public List<String> getAllEndpoints() throws IOException {
-		Document endpoints = Jsoup.connect("https://www.reddit.com/dev/api").get();
+		Document endpoints = Jsoup.connect("https://www.reddit.com/dev/api").data().get();
 		List<String> result = new ArrayList<>();
 		endpoints.getElementsByClass("supports-oauth").forEach(c -> result.add(c.text().trim()));
 		return result;

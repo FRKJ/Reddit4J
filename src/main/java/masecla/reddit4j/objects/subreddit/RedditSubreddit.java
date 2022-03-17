@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Method;
-import org.jsoup.Connection.Response;
+import masecla.reddit4j.http.Method;
+import masecla.reddit4j.http.clients.RedditRequest;
+import masecla.reddit4j.http.clients.RedditResponse;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
@@ -142,9 +142,9 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	public SubredditSettings getSettings() throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/" + display_name_prefixed + "/about/edit");
+		RedditRequest conn = client.useEndpoint("/" + display_name_prefixed + "/about/edit");
 		conn.ignoreHttpErrors(true);
-		Response rsp = client.getHttpClient().execute(conn);
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		if (rsp.statusCode() == 404) {
 			throw new PermissionException("You cannot edit the settings for " + display_name_prefixed + "!");
 		}
@@ -153,9 +153,9 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	public List<SubredditCollection> getCollections() throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/api/v1/collections/subreddit_collections");
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/subreddit_collections");
 		conn.data("sr_fullname", this.getFullName());
-		Response rsp = client.getHttpClient().execute(conn);
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		Gson gson = new SubredditCollection().getGson();
 		JsonArray array = JsonParser.parseString(rsp.body()).getAsJsonArray();
 		List<SubredditCollection> collections = new ArrayList<>();
@@ -164,9 +164,9 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	public SubredditCollection getCollection(UUID id, boolean includeLinks) throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/api/v1/collections/collection");
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/collection");
 		conn.data("collection_id", id.toString()).data("include_links", includeLinks + "");
-		Response rsp = client.getHttpClient().execute(conn);
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		SubredditCollection result = new SubredditCollection().getGson().fromJson(rsp.body(),
 				SubredditCollection.class);
 		result.setSubreddit(this);
@@ -178,10 +178,10 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	public void deleteCollection(UUID id) throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/api/v1/collections/delete_collection");
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/delete_collection");
 		conn.method(Method.POST);
 		conn.data("collection_id", id.toString());
-		Response rsp = client.getHttpClient().execute(conn);
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		JsonArray array = JsonParser.parseString(rsp.body()).getAsJsonObject().getAsJsonObject("json")
 				.getAsJsonArray("errors");
 		if (array.size() != 0) {
@@ -192,10 +192,10 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	protected void setFollowCollection(UUID id, boolean follow) throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/api/v1/collections/follow_collection");
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/follow_collection");
 		conn = conn.method(Method.POST).ignoreHttpErrors(true);
 		conn.data("collection_id", id.toString()).data("follow", follow + "");
-		Response rsp = client.getHttpClient().execute(conn);
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		if (rsp.statusCode() == 500) {
 			throw new IllegalArgumentException("Collection " + id + " not found!");
 		}
@@ -221,7 +221,7 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	public void setEmojisCustomSize(Dimension size) throws IOException, InterruptedException {
-		Connection conn = this.client.useEndpoint("/api/v1/" + display_name + "/emoji_custom_size").method(Method.POST);
+		RedditRequest conn = this.client.useEndpoint("/api/v1/" + display_name + "/emoji_custom_size").method(Method.POST);
 		if (size.width < 1 || size.width > 40)
 			throw new IllegalArgumentException("Custom emoji width must be between 1 and 40!");
 		if (size.height < 1 || size.height > 40)
@@ -235,8 +235,8 @@ public class RedditSubreddit extends RedditThing {
 	}
 
 	public List<SubredditEmoji> getSubredditEmojis() throws IOException, InterruptedException {
-		Connection conn = this.client.useEndpoint("/api/v1/" + display_name + "/emojis/all");
-		Response rsp = this.client.getHttpClient().execute(conn);
+		RedditRequest conn = this.client.useEndpoint("/api/v1/" + display_name + "/emojis/all");
+		RedditResponse rsp = this.client.getHttpClient().execute(conn);
 		JsonObject object = JsonParser.parseString(rsp.body()).getAsJsonObject();
 
 		List<SubredditEmoji> subredditEmojis = new ArrayList<>();

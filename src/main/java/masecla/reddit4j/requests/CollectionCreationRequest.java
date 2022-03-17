@@ -2,11 +2,11 @@ package masecla.reddit4j.requests;
 
 import java.io.IOException;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Method;
-import org.jsoup.Connection.Response;
+import masecla.reddit4j.http.Method;
+import masecla.reddit4j.http.clients.RedditRequest;
 
 import masecla.reddit4j.client.Reddit4J;
+import masecla.reddit4j.http.clients.RedditResponse;
 import masecla.reddit4j.objects.subreddit.RedditSubreddit;
 import masecla.reddit4j.objects.subreddit.SubredditCollection;
 import masecla.reddit4j.objects.subreddit.enums.DisplayLayout;
@@ -45,14 +45,14 @@ public class CollectionCreationRequest {
 	}
 
 	public SubredditCollection execute() throws IOException, InterruptedException {
-		Connection conn = client.useEndpoint("/api/v1/collections/create_collection");
+		RedditRequest conn = client.useEndpoint("/api/v1/collections/create_collection");
 		conn = conn.method(Method.POST);
 		conn.data("description", description);
 		conn.data("display_layout", displayLayout.toString());
 		conn.data("sr_fullname", subreddit.getFullName());
 		conn.data("title", title);
 
-		Response rsp = client.getHttpClient().execute(conn);
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		return new SubredditCollection().getGson().fromJson(rsp.body(), SubredditCollection.class);
 	}
 }

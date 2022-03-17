@@ -4,8 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Response;
+import masecla.reddit4j.http.clients.RedditRequest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -13,6 +12,7 @@ import com.google.gson.JsonParser;
 
 import masecla.reddit4j.client.Reddit4J;
 import masecla.reddit4j.exceptions.AuthenticationException;
+import masecla.reddit4j.http.clients.RedditResponse;
 import masecla.reddit4j.objects.RedditThing;
 
 public class ListingEndpointRequest<T extends RedditThing> {
@@ -39,7 +39,7 @@ public class ListingEndpointRequest<T extends RedditThing> {
 
 	public List<T> submit() throws IOException, InterruptedException, AuthenticationException {
 		client.ensureConnection();
-		Connection conn = client.useEndpoint(endpointPath);
+		RedditRequest conn = client.useEndpoint(endpointPath);
 
 		if (after != null)
 			conn.data("after", after.getId());
@@ -54,7 +54,7 @@ public class ListingEndpointRequest<T extends RedditThing> {
 		if (show)
 			conn.data("show", "all");
 
-		Response rsp = conn.execute();
+		RedditResponse rsp = client.getHttpClient().execute(conn);
 		JsonArray array = JsonParser.parseString(preprocess(rsp.body())).getAsJsonObject().getAsJsonObject("data")
 				.getAsJsonArray("children");
 		Gson gson = new Gson();

@@ -2,8 +2,8 @@ package masecla.reddit4j.http;
 
 import java.io.IOException;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Response;
+import masecla.reddit4j.http.clients.RedditRequest;
+import masecla.reddit4j.http.clients.RedditResponse;
 
 /**
  * This is a simple template for HttpClients to do requests!
@@ -12,7 +12,7 @@ import org.jsoup.Connection.Response;
  */
 public abstract class GenericHttpClient {
 	/**
-	 * This will generally call {@link Connection} and return a {@link Response}. If
+	 * This will generally call {@link Connection} and return a {@link RedditResponse}. If
 	 * any other headers are checked or if the Response is altered is implementation
 	 * dependent. This method should be considered and implemented thread-safe.
 	 * 
@@ -22,5 +22,5 @@ public abstract class GenericHttpClient {
 	 * @throws InterruptedException - If the client is interrupted while doing the
 	 *                              request
 	 */
-	public abstract Response execute(Connection connection) throws IOException, InterruptedException;
+	public abstract RedditResponse execute(RedditRequest connection) throws IOException, InterruptedException;
 }

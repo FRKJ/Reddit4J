@@ -12,10 +12,9 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Method;
-import org.jsoup.Connection.Response;
-import org.jsoup.Jsoup;
+import masecla.reddit4j.http.Method;
+import masecla.reddit4j.http.clients.RedditHttpClient;
+import masecla.reddit4j.http.clients.RedditRequest;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -25,10 +24,8 @@ import com.google.gson.JsonParser;
 import masecla.reddit4j.exceptions.AuthenticationException;
 import masecla.reddit4j.http.GenericHttpClient;
 import masecla.reddit4j.http.clients.RateLimitedClient;
-import masecla.reddit4j.objects.KarmaBreakdown;
-import masecla.reddit4j.objects.RedditProfile;
-import masecla.reddit4j.objects.RedditTrophy;
-import masecla.reddit4j.objects.RedditUser;
+import masecla.reddit4j.http.clients.RedditResponse;
+import masecla.reddit4j.objects.*;
 import masecla.reddit4j.objects.preferences.RedditPreferences;
 import masecla.reddit4j.objects.subreddit.RedditSubreddit;
 import masecla.reddit4j.requests.ListingEndpointRequest;
@@ -52,14 +49,14 @@ public class Reddit4J {
     private ClientType clientType;
 
     protected Reddit4J() {
-        initialize();
+
     }
 
     public void userlessConnect() throws IOException, InterruptedException, AuthenticationException {
         if (userAgent == null) {
             throw new NullPointerException("User Agent was not set!");
         }
-        Connection conn = Jsoup.connect(BASE_URL + "/api/v1/access_token").ignoreContentType(true)
+        RedditRequest conn = RedditRequest.connect(BASE_URL + "/api/v1/access_token").ignoreContentType(true)
                 .ignoreHttpErrors(true).method(Method.POST).userAgent(userAgent);
         conn.data("grant_type", "client_credentials");
 
@@ -68,7 +65,7 @@ public class Reddit4J {
         combination = Base64.getEncoder().encodeToString(combination.getBytes());
         conn.header("Authorization", "Basic " + combination);
 
-        Response response = httpClient.execute(conn);
+        RedditResponse response = httpClient.execute(conn);
         if (response.statusCode() == 401) {
             throw new AuthenticationException("Unauthorized! Invalid clientId or clientSecret!");
         }
@@ -88,7 +85,7 @@ public class Reddit4J {
         if (userAgent == null) {
             throw new NullPointerException("User Agent was not set!");
         }
-        Connection conn = Jsoup.connect(BASE_URL + "/api/v1/access_token").ignoreContentType(true)
+        RedditRequest conn = RedditRequest.connect(BASE_URL + "/api/v1/access_token").ignoreContentType(true)
                 .ignoreHttpErrors(true).method(Method.POST).userAgent(userAgent);
         // Set the required params;
         conn.data("grant_type", "password");
@@ -99,7 +96,7 @@ public class Reddit4J {
         combination = Base64.getEncoder().encodeToString(combination.getBytes());
         conn.header("Authorization", "Basic " + combination);
 
-        Response response = httpClient.execute(conn);
+        RedditResponse response = httpClient.execute(conn);
         if (response.statusCode() == 401) {
             throw new AuthenticationException("Unauthorized! Invalid clientId or clientSecret!");
         }
@@ -115,8 +112,8 @@ public class Reddit4J {
         this.clientType = ClientType.PERSONAL_SCRIPT;
     }
 
-    public Connection useEndpoint(String endpointPath) {
-        Connection connection = Jsoup.connect(OAUTH_URL + endpointPath);
+    public RedditRequest useEndpoint(String endpointPath) {
+        RedditRequest connection = RedditRequest.connect(OAUTH_URL + endpointPath);
         connection.header("Authorization", "bearer " + token).ignoreContentType(true).userAgent(userAgent);
         return connection;
     }
@@ -135,8 +132,8 @@ public class Reddit4J {
     }
 
     public List<KarmaBreakdown> getKarmaBreakdown() throws IOException, InterruptedException {
-        Connection conn = useEndpoint("/api/v1/me/karma").method(Method.GET);
-        Response rsp = this.httpClient.execute(conn);
+        RedditRequest conn = useEndpoint("/api/v1/me/karma").method(Method.GET);
+        RedditResponse rsp = this.httpClient.execute(conn);
         List<KarmaBreakdown> result = new ArrayList<>();
         Gson gson = new Gson();
         JsonParser.parseString(rsp.body()).getAsJsonObject().get("data").getAsJsonArray()
@@ -145,8 +142,8 @@ public class Reddit4J {
     }
 
     public RedditPreferences getPreferences() throws IOException, InterruptedException {
-        Connection conn = useEndpoint("/api/v1/me/prefs").method(Method.GET);
-        Response rsp = this.httpClient.execute(conn);
+        RedditRequest conn = useEndpoint("/api/v1/me/prefs").method(Method.GET);
+        RedditResponse rsp = this.httpClient.execute(conn);
         Gson gson = new RedditPreferences().getGson();
         RedditPreferences prf = gson.fromJson(rsp.body(), RedditPreferences.class);
         prf.setClient(this);
@@ -187,8 +184,8 @@ public class Reddit4J {
         if (name.endsWith("/"))
             name = name.substring(0, name.length() - 1);
 
-        Connection conn = useEndpoint("/r/" + name + "/about");
-        Response rsp = this.httpClient.execute(conn);
+        RedditRequest conn = useEndpoint("/r/" + name + "/about");
+        RedditResponse rsp = this.httpClient.execute(conn);
         Gson gson = new RedditSubreddit().getGson();
         JsonObject data = JsonParser.parseString(rsp.body()).getAsJsonObject().getAsJsonObject("data");
         RedditSubreddit result = gson.fromJson(data, RedditSubreddit.class);
@@ -207,8 +204,8 @@ public class Reddit4J {
     }
 
     public List<RedditTrophy> getTrophies() throws IOException, InterruptedException {
-        Connection conn = useEndpoint("/api/v1/me/trophies").method(Method.GET);
-        Response rsp = this.httpClient.execute(conn);
+        RedditRequest conn = useEndpoint("/api/v1/me/trophies").method(Method.GET);
+        RedditResponse rsp = this.httpClient.execute(conn);
         List<RedditTrophy> trophies = new ArrayList<>();
         Gson gson = new RedditTrophy().getGson();
         JsonArray trophyArray = JsonParser.parseString(rsp.body()).getAsJsonObject().getAsJsonObject("data")
@@ -222,22 +219,22 @@ public class Reddit4J {
 
     public RedditProfile getSelfProfile() throws IOException, InterruptedException, AuthenticationException {
         ensureConnection();
-        Connection request = useEndpoint("/api/v1/me");
-        Response rsp = httpClient.execute(request);
+        RedditRequest request = useEndpoint("/api/v1/me");
+        RedditResponse rsp = httpClient.execute(request);
         RedditProfile properties = new Gson().fromJson(rsp.body(), RedditProfile.class);
         return properties;
     }
 
-    public static Reddit4J rateLimited() {
+    public static Reddit4J rateLimited(RedditHttpClient httpClient) {
         Reddit4J result = new Reddit4J();
-        result.httpClient = new RateLimitedClient();
+        result.httpClient = new RateLimitedClient(httpClient);
         return result;
     }
 
     @Deprecated
     public static Reddit4J unlimited() {
         Reddit4J result = new Reddit4J();
-        result.httpClient = new masecla.reddit4j.http.clients.UnlimitedClient();
+        result.httpClient = new masecla.reddit4j.http.clients.UnlimitedClient(null);
         return result;
     }
 
@@ -268,6 +265,11 @@ public class Reddit4J {
 
     public Reddit4J setUserAgent(UserAgentBuilder userAgent) {
         this.userAgent = userAgent.toString();
+        return this;
+    }
+
+    public Reddit4J applyJdk8HttpFix() {
+        allowMethods("PATCH");
         return this;
     }
 
@@ -309,13 +311,6 @@ public class Reddit4J {
 
     private static boolean initialized = false;
 
-    private static void initialize() {
-        if (initialized)
-            return;
-        initialized = true;
-        allowMethods("PATCH");
-    }
-
     /**
      * This will force the {@link HttpURLConnection} to accept methods which would
      * otherwise not be allowed, such as PATCH. See
@@ -325,6 +320,10 @@ public class Reddit4J {
      * @param methods - The methods to force {@link HttpURLConnection} to take.
      */
     private static void allowMethods(String... methods) {
+        if (initialized)
+            return;
+        initialized = true;
+
         try {
             Field methodsField = HttpURLConnection.class.getDeclaredField("methods");
 

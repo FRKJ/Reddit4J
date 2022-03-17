@@ -2,11 +2,11 @@ package masecla.reddit4j.objects.subreddit;
 
 import java.io.IOException;
 
-import org.jsoup.Connection;
-import org.jsoup.Connection.Method;
-import org.jsoup.Connection.Response;
+import masecla.reddit4j.http.Method;
+import masecla.reddit4j.http.clients.RedditRequest;
 
 import masecla.reddit4j.exceptions.PermissionException;
+import masecla.reddit4j.http.clients.RedditResponse;
 import masecla.reddit4j.objects.RedditObject;
 
 public class SubredditEmoji extends RedditObject {
@@ -61,10 +61,10 @@ public class SubredditEmoji extends RedditObject {
 	}
 
 	public void delete() throws IOException, InterruptedException {
-		Connection conn = subreddit.getClient()
+		RedditRequest conn = subreddit.getClient()
 				.useEndpoint("/api/v1/" + this.subreddit.getDisplayName() + "/emoji/" + this.name);
 		conn.method(Method.DELETE).ignoreHttpErrors(true);
-		Response rsp = this.subreddit.getClient().getHttpClient().execute(conn);
+		RedditResponse rsp = this.subreddit.getClient().getHttpClient().execute(conn);
 		if (rsp.statusCode() == 403)
 			throw new PermissionException("You cannot delete that emoji!");
 	}
