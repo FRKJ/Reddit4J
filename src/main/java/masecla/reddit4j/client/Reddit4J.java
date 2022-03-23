@@ -307,6 +307,22 @@ public class Reddit4J {
         return OAUTH_URL;
     }
 
+    /**
+     * For testing
+     * @param baseUrl
+     */
+    protected static void setBaseUrl(String baseUrl) {
+        BASE_URL = baseUrl;
+    }
+
+    /**
+     * For testing
+     * @param oauthUrl
+     */
+    protected static void setOauthUrl(String oauthUrl) {
+        OAUTH_URL = oauthUrl;
+    }
+
     private static boolean initialized = false;
 
     private static void initialize() {
